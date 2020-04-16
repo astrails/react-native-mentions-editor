@@ -7,7 +7,8 @@ import {
   Text,
   Animated,
   Platform,
-  ScrollView
+  ScrollView,
+  TouchableWithoutFeedback
 } from "react-native";
 
 import EU from "./EditorUtils";
@@ -26,7 +27,9 @@ export class Editor extends React.Component {
     onHideMentions: PropTypes.func,
     editorStyles: PropTypes.object,
     placeholder: PropTypes.string,
-    renderMentionList: PropTypes.func
+    renderMentionList: PropTypes.func,
+    pressOnMention: PropTypes.func,
+    mentionStyle: PropTypes.object
   };
 
   constructor(props) {
@@ -305,10 +308,19 @@ export class Editor extends React.Component {
     this.setState({ selection: newSelc });
   };
 
-  formatMentionNode = (txt, key) => (
-    <Text key={key} style={styles.mention}>
-      {txt}
-    </Text>
+  pressOnMention = (id) => () => {
+    const { pressOnMention } = this.props;
+    if (pressOnMention) {
+      pressOnMention(id);
+    }
+  }
+
+  formatMentionNode = (txt, key, id) => (
+    <TouchableWithoutFeedback  key={key} style={styles.mention} onPress={ this.pressOnMention(id) }>
+      <Text style={ this.props.mentionStyle || styles.mention}>
+        {txt}
+      </Text>
+    </TouchableWithoutFeedback>
   );
 
   formatText(inputText) {
@@ -327,7 +339,8 @@ export class Editor extends React.Component {
       formattedText.push(initialStr);
       const formattedMention = this.formatMentionNode(
         `@${men.username}`,
-        `${start}-${men.id}-${end}`
+        `${start}-${men.id}-${end}`,
+        men.id
       );
       formattedText.push(formattedMention);
       if (
