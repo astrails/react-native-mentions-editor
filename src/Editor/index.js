@@ -539,58 +539,48 @@ export class Editor extends React.Component {
           />
         )}
         <View style={[styles.container, editorStyles.mainContainer]}>
-          <ScrollView
-            ref={scroll => {
-              this.scroll = scroll;
-            }}
-            onContentSizeChange={() => {
-              this.scroll.scrollToEnd({ animated: true });
-            }}
-            style={[styles.editorContainer, editorStyles.editorContainer]}
-          >
-            <View style={[{ height: this.state.editorHeight }]}>
-              <View
-                style={[
-                  styles.formmatedTextWrapper,
-                  editorStyles.inputMaskTextWrapper
-                ]}
-              >
-                {state.formattedText !== "" ? (
-                  <Text
-                    style={[styles.formmatedText, editorStyles.inputMaskText]}
-                  >
-                    {state.formattedText}
-                  </Text>
-                ) : (
-                  <Text
-                    style={[
-                      styles.placeholderText,
-                      editorStyles.placeholderText
-                    ]}
-                  >
-                    {state.placeholder}
-                  </Text>
-                )}
-              </View>
-              <TextInput
-                ref={input => props.onRef && props.onRef(input)}
-                style={[styles.input, editorStyles.input]}
-                multiline
-                autoFocus
-                numberOfLines={100}
-                name={"message"}
-                value={state.inputText}
-                onBlur={props.toggleEditor}
-                onChangeText={this.onChange}
-                selection={Platform.OS === 'ios' ? this.state.selection : null}
-                selectionColor={"#000"}
-                onSelectionChange={this.handleSelectionChange}
-                placeholder={state.placeholder}
-                onContentSizeChange={this.onContentSizeChange}
-                scrollEnabled={false}
-              />
+          <View style={[{ height: this.state.editorHeight }]}>
+            <View
+              style={[
+                styles.formmatedTextWrapper,
+                editorStyles.inputMaskTextWrapper
+              ]}
+            >
+              {state.formattedText !== "" ? (
+                <Text
+                  style={[styles.formmatedText, editorStyles.inputMaskText]}
+                >
+                  {state.formattedText}
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    styles.placeholderText,
+                    editorStyles.placeholderText
+                  ]}
+                >
+                  {state.placeholder}
+                </Text>
+              )}
             </View>
-          </ScrollView>
+            <TextInput
+              ref={input => props.onRef && props.onRef(input)}
+              style={[styles.input, editorStyles.input]}
+              multiline
+              autoFocus
+              numberOfLines={100}
+              name={"message"}
+              value={state.inputText}
+              onBlur={props.toggleEditor}
+              onChangeText={this.onChange}
+              selection={Platform.OS === 'ios' ? this.state.selection : null}
+              selectionColor={"#000"}
+              onSelectionChange={this.handleSelectionChange}
+              placeholder={state.placeholder}
+              onContentSizeChange={this.onContentSizeChange}
+              scrollEnabled={false}
+            />
+          </View>
         </View>
       </View>
     );
