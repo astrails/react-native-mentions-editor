@@ -18,15 +18,16 @@ export default StyleSheet.create({
     alignSelf: "center",
     marginLeft: 12
   },
-  title: {
-    fontSize: 16,
-    color: "rgba(0, 0, 0, 0.8)"
-  },
   thumbnailWrapper: {
     width: 35,
     height: 35
   },
   thumbnailChar: {
     fontSize: 16
+  },
+  image: {
+    width: 30,
+    height: 30,
+    borderRadius: 15
   }
 });

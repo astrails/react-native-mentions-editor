@@ -41,7 +41,7 @@ export class Editor extends React.Component {
       const { map, newValue } = EU.getMentionsWithInputText(props.initialValue);
       this.mentionsMap = map;
       msg = newValue;
-      formattedMsg = this.formatText(newValue);
+      // formattedMsg = this.formatText(newValue);
       setTimeout(()=>{
         this.sendMessageToFooter(newValue);
       });
@@ -54,7 +54,7 @@ export class Editor extends React.Component {
       textInputHeight: "",
       isTrackingStarted: false,
       suggestionRowHeight: new Animated.Value(0),
-      triggerLocation: "anywhere", //'new-words-only', //anywhere
+      triggerLocation: "new-words-only", //'new-words-only', //anywhere
       trigger: "@",
       selection: {
         start: 0,
@@ -64,7 +64,8 @@ export class Editor extends React.Component {
       showMentions: false,
       editorHeight: 72,
       scrollContentInset: { top: 0, bottom: 0, left: 0, right: 0 },
-      placeholder: props.placeholder || "Type something..."
+      placeholder: props.placeholder || "Type something...",
+      mentionList: []
     };
     this.isTrackingStarted = false;
     this.previousChar = " ";
@@ -92,7 +93,20 @@ export class Editor extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     // only update chart if the data has changed
-    if (this.state.inputText !== "" && this.state.clearInput) {
+    // if (this.state.inputText !== "" && this.state.clearInput) {
+    //   this.setState({
+    //     inputText: "",
+    //     formattedText: ""
+    //   });
+    //   this.mentionsMap.clear();
+    // }
+
+    // if (EU.whenTrue(this.props, prevProps, "showMentions")) {
+    //   //don't need to close on false; user show select it.
+    //   this.onChange(this.state.inputText, true);
+    // }
+
+    if (prevProps.clearInput !== this.props.clearInput) {
       this.setState({
         inputText: "",
         formattedText: ""
@@ -100,9 +114,9 @@ export class Editor extends React.Component {
       this.mentionsMap.clear();
     }
 
-    if (EU.whenTrue(this.props, prevProps, "showMentions")) {
-      //don't need to close on false; user show select it.
-      this.onChange(this.state.inputText, true);
+    if (prevProps.infoReply !==  this.props.infoReply) {
+      this.mentionsMap.clear()
+      this.onReplyComment()
     }
   }
 
@@ -117,6 +131,7 @@ export class Editor extends React.Component {
 
   startTracking(menIndex) {
     this.isTrackingStarted = true;
+    this.openSuggestionsPanel();
     this.menIndex = menIndex;
     this.setState({
       keyword: "",
@@ -127,7 +142,7 @@ export class Editor extends React.Component {
 
   stopTracking() {
     this.isTrackingStarted = false;
-    // this.closeSuggestionsPanel();
+    this.closeSuggestionsPanel();
     this.setState({
       isTrackingStarted: false
     });
@@ -165,13 +180,16 @@ export class Editor extends React.Component {
           `\\${this.state.trigger}[a-z0-9_-]+|\\${this.state.trigger}`,
           `i`
         );
+        // pattern = new RegExp(/(^|\s)(@[a-z\d-]+)/ig)
       }
-      const str = inputText.substr(this.menIndex);
-      const keywordArray = str.match(pattern);
-      if (keywordArray && !!keywordArray.length) {
-        const lastKeyword = keywordArray[keywordArray.length - 1];
-        this.updateSuggestions(lastKeyword);
-      }
+      // const str = inputText.substr(this.menIndex);
+      // const keywordArray = str.match(pattern);
+      // if (keywordArray && !!keywordArray.length) {
+      //   const lastKeyword = keywordArray[keywordArray.length - 1];
+      //   this.updateSuggestions(lastKeyword);
+      // }
+
+      this.updateSuggestions(inputText); // last keyword
     }
   }
 
@@ -183,17 +201,25 @@ export class Editor extends React.Component {
     const menIndex = selection.start - 1;
     // const lastChar = inputText.substr(inputText.length - 1);
     const lastChar = inputText.substr(menIndex, 1);
-    const wordBoundry =
-      this.state.triggerLocation === "new-word-only"
-        ? this.previousChar.trim().length === 0
-        : true;
-    if (lastChar === this.state.trigger && wordBoundry) {
+    // const wordBoundry =
+    //   this.state.triggerLocation === "new-word-only"
+    //     ? this.previousChar.trim().length === 0
+    //     : true;
+    // if (lastChar === this.state.trigger && wordBoundry) {
+    //   this.startTracking(menIndex);
+    // } else if (lastChar.trim() === "" && this.state.isTrackingStarted) {
+    //   this.stopTracking();
+    // }
+
+    const t = new RegExp('^@[a-zA-Z0-9]*$');
+    const lastKeyword = inputText.split(' ').pop()
+    if (t.test(inputText.split(' ').pop())) {
       this.startTracking(menIndex);
-    } else if (lastChar.trim() === "" && this.state.isTrackingStarted) {
+    } else {
       this.stopTracking();
     }
     this.previousChar = lastChar;
-    this.identifyKeyword(inputText);
+    this.identifyKeyword(lastKeyword);
   }
 
   getInitialAndRemainingStrings(inputText, menIndex) {
@@ -205,7 +231,10 @@ export class Editor extends React.Component {
      * are any adjcent mentions text with the new one.
      */
     // const {inputText, menIndex} = this.state;
-    let initialStr = inputText.substr(0, menIndex).trim();
+    // let initialStr = inputText.substr(0, menIndex).trim();
+
+    // replace last string
+    let initialStr = inputText.slice(0, inputText.length - inputText.split(' ').pop().length)
     if (!EU.isEmpty(initialStr)) {
       initialStr = initialStr + " ";
     }
@@ -243,7 +272,7 @@ export class Editor extends React.Component {
     };
   }
 
-  onSuggestionTap = user => {
+  onSuggestionTap = (user, isReply) => {
     /**
      * When user select a mention.
      * Add a mention in the string.
@@ -277,11 +306,11 @@ export class Editor extends React.Component {
     );
 
     this.setState({
-      inputText: text,
-      formattedText: this.formatText(text)
+      inputText: isReply ? `@${this.props.infoReply.username} ` : text,
+      // formattedText: this.formatText(text)
     });
     this.stopTracking();
-    this.sendMessageToFooter(text);
+    this.sendMessageToFooter(isReply ? username : text);
   };
 
   handleSelectionChange = ({ nativeEvent: { selection } }) => {
@@ -362,7 +391,7 @@ export class Editor extends React.Component {
         start === 1 ? "" : inputText.substring(lastIndex, start);
       lastIndex = end + 1;
       formattedText = formattedText.concat(initialStr);
-      formattedText = formattedText.concat(`@[${men.username}](id:${men.id})`);
+      formattedText = formattedText.concat(`@${men.ref}`);
       if (
         EU.isKeysAreSame(EU.getLastKeyInMap(this.mentionsMap), [start, end])
       ) {
@@ -373,10 +402,36 @@ export class Editor extends React.Component {
     return formattedText;
   }
 
+  getMentionList(inputText) {
+    if (inputText === "" || !this.mentionsMap.size) return [];
+    let formattedText = "";
+    let lastIndex = 0;
+    const mentionList = [];
+    this.mentionsMap.forEach((men, [start, end]) => {
+      const initialStr =
+        start === 1 ? "" : inputText.substring(lastIndex, start);
+      lastIndex = end + 1;
+      formattedText = formattedText.concat(initialStr);
+      formattedText = formattedText.concat(`@${men.ref}`);
+      if (
+        EU.isKeysAreSame(EU.getLastKeyInMap(this.mentionsMap), [start, end])
+      ) {
+        const lastStr = inputText.substr(lastIndex); //remaining string
+        formattedText = formattedText.concat(lastStr);
+      }
+      mentionList.push({
+          username: men.username,
+          ref: men.ref,
+        });
+    });
+    return mentionList;
+  }
+
   sendMessageToFooter(text) {
     this.props.onChange({
       displayText: text,
-      text: this.formatTextWithMentions(text)
+      text: this.formatTextWithMentions(text),
+      mentionList: this.getMentionList(text)
     });
   }
 
@@ -479,7 +534,7 @@ export class Editor extends React.Component {
 
     this.setState({
       inputText: text,
-      formattedText: this.formatText(text)
+      // formattedText: this.formatText(text)
       // selection,
     });
     this.checkForMention(text, selection);
@@ -510,6 +565,33 @@ export class Editor extends React.Component {
       });
     }
   };
+
+  openSuggestionsPanel() {
+    Animated.timing(this.state.suggestionRowHeight, {
+      toValue: 100, //height
+      duration: 500,
+    }).start();
+  }
+
+  closeSuggestionsPanel() {
+    Animated.timing(this.state.suggestionRowHeight, {
+      toValue: 0,
+      duration: 500,
+    }).start();
+  }
+
+  onChooseIcon = (icon) => {
+    this.setState({
+      inputText: this.state.inputText.concat(icon)
+    }, ()=> {
+      this.sendMessageToFooter(this.state.inputText)
+    })
+  }
+
+  onReplyComment = () => {
+    const { infoReply } = this.props
+    this.onSuggestionTap(infoReply, true)
+  }
 
   render() {
     const { props, state } = this;
