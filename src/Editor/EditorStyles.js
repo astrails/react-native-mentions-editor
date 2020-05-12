@@ -3,11 +3,10 @@ import { StyleSheet } from "react-native";
 export default StyleSheet.create({
   container: {
     backgroundColor: "#fff",
-    borderColor: "green",
-    borderWidth: 1,
-    width: 300
+    // width: 300
   },
   textContainer: {
+    flex: 1,
     alignSelf: "stretch",
     position: "relative",
     minHeight: 40,
@@ -16,22 +15,22 @@ export default StyleSheet.create({
   input: {
     fontSize: 16,
     color: "#000",
-    fontWeight: "400",
-    paddingHorizontal: 20,
+    // fontWeight: "400",
+    // paddingHorizontal: 20,
     minHeight: 40,
     position: "absolute",
     top: 0,
     color: "transparent",
-    alignSelf: "stretch",
-    width: "100%"
+    // alignSelf: "stretch",
+    // width: "100%"
   },
   formmatedTextWrapper: {
     minHeight: 40,
     position: "absolute",
     top: 0,
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    width: "100%"
+    // paddingHorizontal: 20,
+    // paddingVertical: 5,
+    // width: "100%"
   },
   formmatedText: {
     fontSize: 16,

@@ -54,7 +54,7 @@ export class Editor extends React.Component {
       textInputHeight: "",
       isTrackingStarted: false,
       suggestionRowHeight: new Animated.Value(0),
-      triggerLocation: "anywhere", //'new-words-only', //anywhere
+      triggerLocation: "new-word-only", //'new-words-only', //anywhere
       trigger: "@",
       selection: {
         start: 0,
@@ -180,7 +180,7 @@ export class Editor extends React.Component {
      * Open mentions list if user
      * start typing @ in the string anywhere.
      */
-    const menIndex = selection.start - 1;
+    const menIndex = Platform.OS === 'ios' ?  selection.start - 1 :  selection.start;
     // const lastChar = inputText.substr(inputText.length - 1);
     const lastChar = inputText.substr(menIndex, 1);
     const wordBoundry =
@@ -568,7 +568,6 @@ export class Editor extends React.Component {
               style={[styles.input, editorStyles.input]}
               multiline
               autoFocus
-              numberOfLines={100}
               name={"message"}
               value={state.inputText}
               onBlur={props.toggleEditor}
