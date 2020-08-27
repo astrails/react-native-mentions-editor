@@ -28,7 +28,6 @@ export class Editor extends React.Component {
     editorStyles: PropTypes.object,
     placeholder: PropTypes.string,
     renderMentionList: PropTypes.func,
-    pressOnMention: PropTypes.func,
     mentionStyle: PropTypes.object
   };
 
@@ -37,15 +36,7 @@ export class Editor extends React.Component {
     this.mentionsMap = new Map();
     let msg = "";
     let formattedMsg = "";
-    if (props.initialValue && props.initialValue !== "") {
-      const { map, newValue } = EU.getMentionsWithInputText(props.initialValue);
-      this.mentionsMap = map;
-      msg = newValue;
-      formattedMsg = this.formatText(newValue);
-      setTimeout(()=>{
-        this.sendMessageToFooter(newValue);
-      });
-    }
+
     this.state = {
       clearInput: props.clearInput,
       inputText: msg,
@@ -90,13 +81,22 @@ export class Editor extends React.Component {
     return null;
   }
 
+  componentDidMount() {
+    if (this.props.initialValue && this.props.initialValue !== "") {
+      const { map, newValue } = EU.getMentionsWithInputText(props.initialValue);
+      this.mentionsMap = map;
+      msg = newValue;
+      formattedMsg = this.formatText(newValue);
+      setTimeout(()=>{
+        this.sendMessageToFooter(newValue);
+      });
+    }
+  }
+
   componentDidUpdate(prevProps, prevState) {
     // only update chart if the data has changed
     if (this.state.inputText !== "" && this.state.clearInput) {
-      this.setState({
-        inputText: "",
-        formattedText: ""
-      });
+      this.resetState();
       this.mentionsMap.clear();
     }
 
@@ -104,6 +104,13 @@ export class Editor extends React.Component {
       //don't need to close on false; user show select it.
       this.onChange(this.state.inputText, true);
     }
+  }
+
+  resetState() {
+    this.setState({
+      inputText: "",
+      formattedText: ""
+    });
   }
 
   updateMentionsMap(selection, count, shouldAdd) {
@@ -308,19 +315,10 @@ export class Editor extends React.Component {
     this.setState({ selection: newSelc });
   };
 
-  pressOnMention = (id) => () => {
-    const { pressOnMention } = this.props;
-    if (pressOnMention) {
-      pressOnMention(id);
-    }
-  }
-
   formatMentionNode = (txt, key, id) => (
-    <TouchableWithoutFeedback  key={key} style={styles.mention} onPress={ this.pressOnMention(id) }>
-      <Text style={ this.props.mentionStyle || styles.mention}>
+      <Text key={key} style={ this.props.mentionStyle || styles.mention}>
         {txt}
       </Text>
-    </TouchableWithoutFeedback>
   );
 
   formatText(inputText) {
@@ -567,7 +565,7 @@ export class Editor extends React.Component {
               ref={input => props.onRef && props.onRef(input)}
               style={[styles.input, editorStyles.input]}
               multiline
-              autoFocus
+              // autoFocus
               name={"message"}
               value={state.inputText}
               onBlur={props.toggleEditor}
